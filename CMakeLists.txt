@@ -12,7 +12,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/shell/cmake")
 
 if(APPLE)
 	if(CMAKE_SYSTEM_NAME STREQUAL iOS)
-		set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum iOS deployment version")
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.0" CACHE STRING "Minimum iOS deployment version")
 		set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "")
 	elseif(CMAKE_SYSTEM_NAME STREQUAL tvOS)
 		set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum tvOS deployment version")
@@ -1711,9 +1711,19 @@ if(NOT LIBRETRO)
 		string(TIMESTAMP YEAR "%Y")
 		string(REGEX MATCH "^[^-]+" TAG_VERSION ${GIT_VERSION})
 		if(IOS)
-			set_property(TARGET ${PROJECT_NAME} PROPERTY XCODE_ATTRIBUTE_SWIFT_VERSION "5.0")
-			add_subdirectory(shell/apple/emulator-ios/AltKit)
-			target_link_libraries(${PROJECT_NAME} PRIVATE AltKit)
+			# AltKit (Swift + Network.framework) needs iOS 12+. Below that, JIT is enabled
+			# through the ptrace/CS_DEBUGGED trick or a jailbreak, so AltKit is left out.
+			if(CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 12.0)
+				set(FLYCAST_ALTKIT OFF)
+			else()
+				set(FLYCAST_ALTKIT ON)
+			endif()
+			if(FLYCAST_ALTKIT)
+				set_property(TARGET ${PROJECT_NAME} PROPERTY XCODE_ATTRIBUTE_SWIFT_VERSION "5.0")
+				add_subdirectory(shell/apple/emulator-ios/AltKit)
+				target_link_libraries(${PROJECT_NAME} PRIVATE AltKit)
+				target_compile_definitions(${PROJECT_NAME} PRIVATE FLYCAST_ALTKIT=1)
+			endif()
 
 			target_sources(${PROJECT_NAME} PRIVATE
 					shell/apple/common/http_client.mm
@@ -1787,6 +1797,13 @@ if(NOT LIBRETRO)
 				${GAMECONTROLLER}
 				${AUDIOTOOLBOX}
 				${AVFOUNDATION})
+			# Frameworks that don't exist on iOS 10 must be weak-linked, or dyld refuses to launch the app.
+			# Module autolinking would add them as strong dependencies, so it is turned off for the ObjC++ sources.
+			target_link_libraries(${PROJECT_NAME} PRIVATE
+				"-Wl,-weak_framework,CoreHaptics"
+				"-Wl,-weak_framework,Network"
+				"-Wl,-weak_framework,UniformTypeIdentifiers")
+			target_compile_options(${PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX,OBJCXX,OBJC>:-fno-autolink>)
 
 			add_custom_target(Flycast.IPA ALL
 				DEPENDS ${PROJECT_NAME}
