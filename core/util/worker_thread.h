@@ -80,8 +80,11 @@ private:
 				Task t = queue.pop();
 				if (std::get_if<Exit>(&t) != nullptr)
 					break;
-				Function& func = std::get<Function>(t);
-				func();
+				// std::get() throws bad_variant_access, which libc++ only provides from iOS 12;
+				// get_if avoids that dependency when targeting older systems.
+				Function *func = std::get_if<Function>(&t);
+				if (func != nullptr)
+					(*func)();
 			}
 		});
 	}
