@@ -1,0 +1,62 @@
+name: iOS 10 (jailbreak) build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # The repo was uploaded from a source zip, so .gitmodules exists but there are no
+      # submodule commits (gitlinks) and checkout leaves core/deps/* empty. Clone what iOS needs.
+      - name: Fetch dependencies
+        run: |
+          fetch() {  # path url
+            if [ -z "$(ls -A "$1" 2>/dev/null)" ]; then
+              rm -rf "$1"
+              git clone --depth 1 --recursive "$2" "$1"
+            fi
+          }
+          fetch core/deps/libchdr   https://github.com/flyinghead/libchdr.git
+          fetch core/deps/asio      https://github.com/flyinghead/asio.git
+          fetch core/deps/rcheevos  https://github.com/RetroAchievements/rcheevos.git
+          ls core/deps/libchdr core/deps/asio core/deps/rcheevos | head -30
+
+      - name: Tools
+        run: brew install ldid cmake
+
+      - name: Build OpenMP (iOS arm64, min 10.0)
+        run: |
+          chmod +x shell/apple/emulator-ios/OpenMP/build_ios_openmp.sh
+          shell/apple/emulator-ios/OpenMP/build_ios_openmp.sh -d
+
+      - name: Configure
+        run: |
+          cmake -B build -G Xcode \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=10.0 \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DUSE_BREAKPAD=NO -DUSE_DISCORD=NO -DUSE_LUA=NO \
+            -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
+
+      - name: Build
+        run: cmake --build build --config Release --target Flycast.IPA -- -quiet 2>&1 | tee build.log
+
+      - name: Make IPA
+        run: |
+          cd build
+          zip -qr Flycast-ios10.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flycast-ios10
+          path: |
+            build/Flycast-ios10.ipa
+            build.log
