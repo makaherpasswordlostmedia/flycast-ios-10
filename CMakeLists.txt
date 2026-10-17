@@ -1799,6 +1799,14 @@ if(NOT LIBRETRO)
 				${AVFOUNDATION})
 			# Frameworks that don't exist on iOS 10 must be weak-linked, or dyld refuses to launch the app.
 			# Module autolinking would add them as strong dependencies, so it is turned off for the ObjC++ sources.
+			# -fno-autolink below disables module autolinking, so list everything the ObjC++ code needs
+			find_library(OPENGLES_FW OpenGLES)
+			find_library(COREGRAPHICS_FW CoreGraphics)
+			find_library(QUARTZCORE_FW QuartzCore)
+			find_library(COREFOUNDATION_FW CoreFoundation)
+			find_library(COREMOTION_FW CoreMotion)
+			target_link_libraries(${PROJECT_NAME} PRIVATE
+				${OPENGLES_FW} ${COREGRAPHICS_FW} ${QUARTZCORE_FW} ${COREFOUNDATION_FW} ${COREMOTION_FW})
 			target_link_libraries(${PROJECT_NAME} PRIVATE
 				"-Wl,-weak_framework,CoreHaptics"
 				"-Wl,-weak_framework,Network"
