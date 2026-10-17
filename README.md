@@ -1,62 +1,113 @@
-# Flycast
+# Flycast iOS 10
 
-[![Android CI](https://github.com/flyinghead/flycast/actions/workflows/android.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/android.yml)
-[![C/C++ CI](https://github.com/flyinghead/flycast/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/c-cpp.yml)
-[![Nintendo Switch CI](https://github.com/flyinghead/flycast/actions/workflows/switch.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/switch.yml)
-[![Windows UWP CI](https://github.com/flyinghead/flycast/actions/workflows/uwp.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/uwp.yml)
-[![BSD CI](https://github.com/flyinghead/flycast/actions/workflows/bsd.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/bsd.yml)
+> Proof of concept: запуск Flycast на 64-битной iOS 10, чтобы показать, что это возможно.
 
-<img src="shell/linux/flycast.png" alt="flycast logo" width="150"/>
+Форк [flycast-ios-restore](https://github.com/themaster567/flycast-ios-restore), который основан на [Flycast](https://github.com/flyinghead/flycast) — мультиплатформенном эмуляторе Sega Dreamcast, Naomi, Naomi 2 и Atomiswave (производный от [reicast](https://github.com/skmp/reicast-emulator)).
 
-**Flycast** is a multi-platform Sega Dreamcast, Naomi, Naomi 2, and Atomiswave emulator derived from [**reicast**](https://github.com/skmp/reicast-emulator).
+> ⚠️ **Статус: экспериментальный.** Это демонстрация возможности, а не стабильный релиз. Возможны баги и вылеты.
 
-Information about configuration and supported features can be found on [**TheArcadeStriker's flycast wiki**](https://github.com/TheArcadeStriker/flycast-wiki/wiki).
+## О проекте
 
-Join us on our [**Discord server**](https://discord.gg/X8YWP8w) for a chat. 
+Официальный Flycast больше не поддерживает iOS. Этот репозиторий показывает, что эмулятор можно собрать и запустить на устройствах с 64-битной iOS 10.
 
-## Install
+## Релизы
 
-### Android ![android](https://flyinghead.github.io/flycast-builds/android.jpg)
-Install Flycast from [**Google Play**](https://play.google.com/store/apps/details?id=com.flycast.emulator).
-### Flatpak (Linux ![ubuntu logo](https://flyinghead.github.io/flycast-builds/ubuntu.png))
+Актуальный релиз: [**0.1 — iOS 10 64 bit**](https://github.com/makaherpasswordlostmedia/flycast-ios-10/releases/tag/0.1) (pre-release).
 
-1. [Set up Flatpak](https://www.flatpak.org/setup/).
+Результаты тестирования из заметок к релизу:
 
-2. Install Flycast from [Flathub](https://flathub.org/apps/details/org.flycast.Flycast):
+| Параметр | Результат |
+|----------|-----------|
+| Эмулятор | запускается и работает |
+| Протестировано на | чип A7 |
+| Sonic Adventure | полная скорость |
+| Остальные игры | не тестировались |
 
-`flatpak install -y org.flycast.Flycast`
+## Совместимость
 
-3. Run Flycast:
+- **ОС:** iOS 10 (64-bit)
+- **Устройства:** сборка тестировалась на устройстве с чипом A7 (iPhone 5s, iPad Air, iPad mini 2/3 и т.п.)
+- Более новые чипы не проверялись, но должны быть не хуже
 
-`flatpak run org.flycast.Flycast`
+## Установка
 
-### Homebrew (MacOS ![apple logo](https://flyinghead.github.io/flycast-builds/apple.png))
+1. Скачайте файл из [релиза 0.1](https://github.com/makaherpasswordlostmedia/flycast-ios-10/releases/tag/0.1) (раздел Assets).
+2. Установите его на устройство любым привычным для вас способом.
+3. Скопируйте BIOS и образы игр в каталог приложения.
 
-1. [Set up Homebrew](https://brew.sh).
+<!-- TODO: уточнить формат файлов в Assets (.ipa / .deb) и способ установки -->
 
-2. Install Flycast via Homebrew:
+## Использование
 
-`brew install --cask flycast`
+Для работы нужны ваши собственные файлы:
 
-### iOS
+- **BIOS** Dreamcast (`dc_boot.bin`, `dc_flash.bin`)
+- **Образы игр** (CDI, GDI, CHD и т.д.), полученные из ваших собственных дисков
 
-Due to persistent harassment from an iOS user, support for this platform has been dropped. 
+Проект **не включает** BIOS и игры и не предоставляет ссылок на них.
 
-### Xbox One/Series ![xbox logo](https://flyinghead.github.io/flycast-builds/xbox.png)
+## Сборка из исходников
 
-Grab the latest build from [**the builds page**](https://flyinghead.github.io/flycast-builds/), or the [**GitHub Actions**](https://github.com/flyinghead/flycast/actions/workflows/uwp.yml). Then install it using the **Xbox Device Portal**.
-
-### Binaries ![android](https://flyinghead.github.io/flycast-builds/android.jpg) ![windows](https://flyinghead.github.io/flycast-builds/windows.png) ![linux](https://flyinghead.github.io/flycast-builds/ubuntu.png) ![apple](https://flyinghead.github.io/flycast-builds/apple.png) ![switch](https://flyinghead.github.io/flycast-builds/switch.png) ![xbox](https://flyinghead.github.io/flycast-builds/xbox.png)
-
-Get fresh builds for your system [**on the builds page**](https://flyinghead.github.io/flycast-builds/).
-
-**New:** Now automated test results are available as well. 
-
-### Build instructions:
+```bash
+git clone --recursive https://github.com/makaherpasswordlostmedia/flycast-ios-10.git
+cd flycast-ios-10
 ```
-$ git clone --recursive https://github.com/flyinghead/flycast.git
-$ cd flycast
-$ mkdir build && cd build
-$ cmake ..
-$ make
+
+Если забыли `--recursive`:
+
+```bash
+git submodule update --init --recursive
 ```
+
+Сборка через CMake (как в upstream):
+
+```bash
+mkdir build && cd build
+cmake ..
+make
+```
+
+Доступные пресеты: `cmake --list-presets` (см. `CMakePresets.json`).
+
+<!-- TODO: добавить точный пресет и шаги для iOS-сборки -->
+
+## Структура репозитория
+
+| Путь | Назначение |
+|------|------------|
+| `core/` | ядро эмулятора |
+| `shell/` | платформенный код и оболочки |
+| `resources/` | ресурсы приложения |
+| `fonts/` | шрифты |
+| `intl/` | локализации |
+| `tools/` | вспомогательные утилиты |
+| `tests/` | тесты |
+| `docs/` | документация |
+| `CMakeLists.txt`, `CMakePresets.json` | конфигурация сборки |
+
+## Известные ограничения
+
+- Proof of concept — стабильность не гарантируется
+- Протестирован только Sonic Adventure, совместимость с остальными играми неизвестна
+- Только 64-битные устройства
+
+## Ссылки
+
+- [Upstream Flycast](https://github.com/flyinghead/flycast)
+- [Вики Flycast](https://github.com/TheArcadeStriker/flycast-wiki/wiki)
+- [Discord Flycast](https://discord.gg/X8YWP8w)
+- [flycast-ios-restore](https://github.com/themaster567/flycast-ios-restore)
+
+## Лицензия
+
+См. файл [LICENSE](LICENSE). Проект производный от Flycast и наследует его условия лицензирования.
+
+## Благодарности
+
+- [flyinghead](https://github.com/flyinghead) и все контрибьюторы Flycast
+- команда reicast
+- [themaster567](https://github.com/themaster567) за flycast-ios-restore
+
+## Отказ от ответственности
+
+Проект не связан с Sega. Dreamcast, Naomi и Atomiswave — торговые марки их владельцев. Используйте только легально полученные BIOS и образы игр.
