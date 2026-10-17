@@ -6,5 +6,9 @@
 	<string>com.flyinghead.Flycast</string>
 	<key>get-task-allow</key>
 	<true/>
+	<key>dynamic-codesigning</key>
+	<true/>
+	<key>platform-application</key>
+	<true/>
 </dict>
 </plist>

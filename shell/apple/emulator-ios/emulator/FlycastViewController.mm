@@ -18,8 +18,12 @@
 	along with Flycast.  If not, see <https://www.gnu.org/licenses/>.
 */
 #import "FlycastViewController.h"
+#ifdef FLYCAST_ALTKIT
 #import <Network/Network.h>
+#endif
+#if defined(__IPHONE_14_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_14_0
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#endif
 #import <AVFoundation/AVFoundation.h>
 
 #import <OpenGLES/ES3/gl.h>
@@ -44,7 +48,9 @@
 #include "ios_mouse.h"
 #include "oslib/oslib.h"
 
+#ifdef FLYCAST_ALTKIT
 #import "AltKit-Swift.h"
+#endif
 
 static std::string iosJitStatus;
 static bool iosJitAuthorized;
@@ -159,8 +165,10 @@ static void updateAudioSession(Event event, void *)
 @property (nonatomic, strong) id mouseConnectObserver;
 @property (nonatomic, strong) id mouseDisconnectObserver;
 
+#ifdef FLYCAST_ALTKIT
 @property (nonatomic, strong) nw_path_monitor_t monitor;
 @property (nonatomic, strong) dispatch_queue_t monitorQueue;
+#endif
 
 @property (nonatomic, assign, getter=isKeyboardVisible) BOOL keyboardVisible;
 @property (nonatomic, assign) CGRect textInputRect;
@@ -451,6 +459,13 @@ bool checkTryDebug()
 
 		return;
 	}
+#ifndef FLYCAST_ALTKIT
+	// iOS < 12: no AltServer. JIT needs a debugger-attached state (ptrace trick above) or a jailbreak.
+	if (iosJitStatus.empty())
+		iosJitStatus = "Unavailable (no JIT: jailbreak or debugger required)";
+	return;
+#else
+	if (@available(iOS 12.0, *)) {
 	NSLog(@"Starting AltKit discovery");
 
 	[[ALTServerManager sharedManager] autoconnectWithCompletionHandler:^(ALTServerConnection *connection, NSError *error) {
@@ -500,14 +515,30 @@ bool checkTryDebug()
 		}
 	});
 	nw_path_monitor_start(self.monitor);
+	}
+#endif // FLYCAST_ALTKIT
 }
 
 - (void)viewSafeAreaInsetsDidChange
 {
-	[super viewSafeAreaInsetsDidChange];
-	float scale = self.view.contentScaleFactor;
-	gui_set_insets(self.view.safeAreaInsets.left * scale, self.view.safeAreaInsets.right * scale,
-				   self.view.safeAreaInsets.top * scale, self.view.safeAreaInsets.bottom * scale);
+	// Only called by UIKit on iOS 11+; on iOS 10 there are no safe-area insets (all zero).
+	if (@available(iOS 11.0, *)) {
+		[super viewSafeAreaInsetsDidChange];
+		float scale = self.view.contentScaleFactor;
+		gui_set_insets(self.view.safeAreaInsets.left * scale, self.view.safeAreaInsets.right * scale,
+					   self.view.safeAreaInsets.top * scale, self.view.safeAreaInsets.bottom * scale);
+	}
+}
+
+- (void)viewDidLayoutSubviews
+{
+	[super viewDidLayoutSubviews];
+	if (@available(iOS 11.0, *)) {
+		// handled in viewSafeAreaInsetsDidChange
+	}
+	else {
+		gui_set_insets(0, 0, 0, 0);
+	}
 }
 
 #pragma mark On-screen keyboard
