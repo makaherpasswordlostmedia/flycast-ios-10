@@ -31,11 +31,6 @@ jobs:
       - name: Tools
         run: brew install ldid cmake
 
-      - name: Build OpenMP (iOS arm64, min 10.0)
-        run: |
-          chmod +x shell/apple/emulator-ios/OpenMP/build_ios_openmp.sh
-          shell/apple/emulator-ios/OpenMP/build_ios_openmp.sh -d
-
       - name: Configure
         run: |
           cmake -B build -G Xcode \
